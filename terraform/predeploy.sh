@@ -3,7 +3,7 @@ echo "[pre:deploy] start"
 cd ..
 
 rm ./terraform/output.current.tar
-ls -al /terraform
+ls -al ./terraform
 
 nerdctl build --no-cache -t catcatch/backend:latest \
   --build-arg GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID \
