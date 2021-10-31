@@ -443,3 +443,6 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+output.backup
+output.current.tar
