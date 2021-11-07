@@ -82,20 +82,14 @@ resource "aws_instance" "web" {
     ]
   }
 }
+module "route" {
+  source = "./modules/route"
 
-// Route53 도메인 호스트 Zone 생성
-resource "aws_route53_zone" "primary" {
-  name = "creco-aws.com"
-}
-
-// Route53 도메인 record 생성 (pc.creco-aws.com)
-// TODO: pc.creco-aws.com는 환경변수로 분리 필요
-resource "aws_route53_record" "web" {
-  zone_id = aws_route53_zone.primary.zone_id
-  name    = "pc.creco-aws.com"
-  type    = "A"
-  ttl     = "300"
-  records = [aws_instance.web.public_ip]
+  PUBLIC_IP                 = aws_instance.web.public_ip
+  DNS_AWS_ACCESS_KEY_ID     = var.DNS_AWS_ACCESS_KEY_ID
+  DNS_AWS_SECRET_ACCESS_KEY = var.DNS_AWS_SECRET_ACCESS_KEY
+  ROUTE_WEB_DOMAIN          = "pc.creco-aws.com"
+  ROUTE_PRIMARY_DOMAIN      = "creco-aws.com"
 }
 
 // 도메인 소유 Account 의 key 환경변수
@@ -105,23 +99,6 @@ variable "DNS_AWS_ACCESS_KEY_ID" {
 variable "DNS_AWS_SECRET_ACCESS_KEY" {
   type = string
 }
-
-// 도메인 소유한 Account의 도메인의 Name Server를 새로 생성한 Host Zone으로 업데이트
-resource "null_resource" "modify_domain_name_servers" {
-  provisioner "local-exec" {
-    command     = "chmod +x ./dns-register.sh && bash ./dns-register.sh"
-    interpreter = ["/bin/bash", "-c"]
-    environment = {
-      AWS_ACCESS_KEY_ID     = var.DNS_AWS_ACCESS_KEY_ID
-      AWS_SECRET_ACCESS_KEY = var.DNS_AWS_SECRET_ACCESS_KEY
-      NAME_SERVER_0         = aws_route53_zone.primary.name_servers[0]
-      NAME_SERVER_1         = aws_route53_zone.primary.name_servers[1]
-      NAME_SERVER_2         = aws_route53_zone.primary.name_servers[2]
-      NAME_SERVER_3         = aws_route53_zone.primary.name_servers[3]
-    }
-  }
-}
-
 
 // 접속 경로 output
 output "welcome_to_my_web" {
